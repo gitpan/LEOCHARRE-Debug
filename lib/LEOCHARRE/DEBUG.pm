@@ -1,7 +1,6 @@
 package LEOCHARRE::DEBUG;
 use strict;
-
-our $VERSION = sprintf "%d.%02d", q$Revision: 1.2 $ =~ /(\d+)/g;
+our $VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)/g;
 
 $LEOCHARRE::DEBUG::DEBUG_LEVEL = 1;
 $LEOCHARRE::DEBUG::DEBUG = 0;
@@ -81,6 +80,8 @@ sub import {
 
 
 1;
+
+=pod
 
 =head1 NAME
 
@@ -206,13 +207,9 @@ Show tons of garble:
 
    $MYMOD::DEBUG_LEVEL = 3;   
 
-
-=cut
-
-
 =head1 SEE ALSO
 
-This L<LEOCHARRE::CLI>
+L<LEOCHARRE::CLI>
 
 =head1 AUTHOR
 
