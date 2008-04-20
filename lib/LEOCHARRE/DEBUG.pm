@@ -1,11 +1,12 @@
 package LEOCHARRE::DEBUG;
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf "%d.%02d", q$Revision: 1.6 $ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.11 $ =~ /(\d+)/g;
 
 $LEOCHARRE::DEBUG::_DEBUG = 0;
-sub _DEBUG { return $LEOCHARRE::DEBUG::_DEBUG; }
+$LEOCHARRE::DEBUG::USE_COLOR = 0;
 
+sub _DEBUG { return $LEOCHARRE::DEBUG::_DEBUG; }
 
 sub __DEBUG {
    my $pkg = shift;
@@ -23,9 +24,14 @@ sub __debug {
 
    return sub {
       no strict 'refs';
-      my $DEBUG = ${"$pkg\::DEBUG"};
+      my $DEBUG = ${"$pkg\::DEBUG"}; #TODO there is a way to do this at compile time
+      #  instead of run time
    
       $DEBUG or return 1;
+   
+      my $_prepend = ' # ';
+      
+      
    
       # are we being used as method?
       # so that $self->debug() works like debug()
@@ -73,10 +79,10 @@ sub __debug {
 	   }	  
 	
 	   if( ${"$pkg\::_DEBUG_SHOW_NAMESPACE"} or $caller_changed){
-	      print STDERR " $sub(),";
+	      print STDERR " $_prepend$sub(),";
 	   }
-	   
-	   print STDERR " $val";
+	   $val||='';
+	   print STDERR " $val\n";
 	
 	
 	   if ($val=~/\n$/ ) {
@@ -91,13 +97,63 @@ sub __debug {
 }
 
 
+sub __debug_smaller {
+   my $pkg = shift;
+
+   return sub {
+      no strict 'refs';
+      my $DEBUG = ${"$pkg\::DEBUG"}; #TODO there is a way to do this at compile time, not run time
+      $DEBUG or return 1;
+      # are we being used as method?
+      # so that $self->debug() works like debug()
+	   my $val = shift;
+	   if (ref $val){ # then likely used as method
+	      $val = shift; # use the next value.
+	   }
+	   
+	   # SET CALLER NAMESPACE
+	   my $sub = (caller(1))[3];
+	   # if used in a script, caller wont be there
+	   $sub ||= $pkg;
+	
+	   unless ( $LEOCHARRE::DEBUG::DEBUG_SHOW_WHOLE_NAMESPACE ){   
+	      $sub=~s/^.*:://; # print sub() instead of MyPackage::sub()   
+	   }	  
+
+      $sub =  ($sub eq 'main') ? $0 : "$sub()";
+
+	   $val||='';
+      my $out = " #[$sub]# $val\n";
+
+      if ( $LEOCHARRE::DEBUG::USE_COLOR ){
+         require Term::ANSIColor;
+         $Term::ANSIColor::AUTORESET = 1;
+	      print STDERR Term::ANSIColor::colored ($out,$LEOCHARRE::DEBUG::USE_COLOR);
+      }
+      else {
+         print STDERR $out;
+      }
+	   return 1;
+   };
+}
+
+
+
+
 sub import {
     ## find out who is calling us
     my $pkg = caller;
 
+    for (@_){
+      if ($_=~/use_color/){
+         $LEOCHARRE::DEBUG::USE_COLOR = 'dark';
+      }
+    }
+
     ## while strict doesn't deal with globs, it still
     ## catches symbolic de/referencing
     no strict 'refs';
+
 
     #print STDERR "  [$pkg]\n";
 
@@ -114,13 +170,34 @@ sub import {
    my ($D1,$D2,$D3,$D4) =(0,1,0,0);
    
    *{"$pkg\::DEBUG"} = __DEBUG($pkg);
-   *{"$pkg\::debug"} = __debug($pkg);
-   
+   #*{"$pkg\::debug"} = __debug($pkg);
+   *{"$pkg\::debug"} = __debug_smaller($pkg);
+  
    *{"$pkg\::DEBUG"} = \$D1; #0;
    *{"$pkg\::_DEBUG_SHOW_NAMESPACE"} = \$D2; #1;
    *{"$pkg\::_DEBUG_LAST_CALLER"} = \$D3;#$0;
    *{"$pkg\::_DEBUG_SHOW_WHOLE_NAMESPACE"} = \$D4 ;# 0;
 
+   *{"$pkg\::debug_detect_cliopt"} = 
+   sub {
+      for (@ARGV){
+         if ($_ eq '-d'){
+            ${"$pkg\::DEBUG"} = 1;
+            last;
+         }
+      }
+   };
+
+
+
+   # if we are being imported by a script (main) and there is and -d @ARGV, then turn debug on
+
+
+   #if ($pkg eq 'main'){
+    #  if ( "@ARGV"=~/[\s|]-d[\s|]/ ){
+     #    ${"$pkg\::DEBUG"} = 1;
+     # }
+   #}
 
    # ABUSE CALLING PACKAGE, these are scalars we want
   # for (qw(DEBUG _DEBUG_SHOW_NAMESPACE _DEBUG_SHOW_WHOLE_NAMESPACE _DEBUG_LAST_CALLER)){
@@ -188,6 +265,27 @@ In script.t
    ok( !($o->test) );
 
 
+=head1 USING COLOR
+
+requires Term::ANSIColor
+use color..
+
+   use LEOCHARRE::DEBUG 'use_color';
+   DEBUG 1;
+   debug('i am gray');
+
+by default we use 'dark'
+if you want to change..
+
+$LEOCHARRE::DEBUG::USE_COLOR = 'red';
+
+Also..
+
+   use LEOCHARRE::DEBUG;
+   $LEOCHARRE::DEBUG::USE_COLOR = 'red';
+   debug('i am red'); 
+
+
 =head1 DEBUG()
 
 set and get accessor
@@ -196,6 +294,10 @@ this is also the debug level.
 if set to 0, no debug messages are shown.
 
    print STDERR "oops" if DEBUG;
+
+=head1 debug_detect_cliopt()
+
+inspects the @ARGV and if there's a '-d' opt, sets debug to 1
 
 =head1 debug()
 
