@@ -1,7 +1,7 @@
 package LEOCHARRE::DEBUG;
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf "%d.%02d", q$Revision: 1.11 $ =~ /(\d+)/g;
+$VERSION = sprintf "%d.%02d", q$Revision: 1.12 $ =~ /(\d+)/g;
 
 $LEOCHARRE::DEBUG::_DEBUG = 0;
 $LEOCHARRE::DEBUG::USE_COLOR = 0;
@@ -81,7 +81,15 @@ sub __debug {
 	   if( ${"$pkg\::_DEBUG_SHOW_NAMESPACE"} or $caller_changed){
 	      print STDERR " $_prepend$sub(),";
 	   }
-	   $val||='';
+      
+	   defined $val or $val ='';
+
+      # if ref.. use dumper
+      if ( ref $val ){
+         require Data::Dumper;
+         $val = Data::Dumper::Dumper($val);
+      }
+      
 	   print STDERR " $val\n";
 	
 	
@@ -107,6 +115,12 @@ sub __debug_smaller {
       # are we being used as method?
       # so that $self->debug() works like debug()
 	   my $val = shift;
+      my $ref = ref $val;
+      if ($ref eq 'ARRAY' or $ref eq 'HASH' ){
+         require Data::Dumper;
+         $val = Data::Dumper::Dumper($val);
+      }
+      
 	   if (ref $val){ # then likely used as method
 	      $val = shift; # use the next value.
 	   }
@@ -123,7 +137,7 @@ sub __debug_smaller {
       $sub =  ($sub eq 'main') ? $0 : "$sub()";
 
 	   $val||='';
-      my $out = " #[$sub]# $val\n";
+      my $out = "DEBUG $sub $val\n";
 
       if ( $LEOCHARRE::DEBUG::USE_COLOR ){
          require Term::ANSIColor;
