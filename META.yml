@@ -1,10 +1,22 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         LEOCHARRE-DEBUG
-version:      1.12
-version_from: lib/LEOCHARRE/DEBUG.pm
-installdirs:  site
+--- #YAML:1.0
+name:               LEOCHARRE-Debug
+version:            1.02
+abstract:           ~
+author:  []
+license:            perl
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
 requires:
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+    Carp:          1
+    Cwd:           3
+    Exporter:      5
+    Test::Simple:  0
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.48
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4
