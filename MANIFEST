@@ -1,11 +1,8 @@
-MANIFEST
-README
 Changes
+MANIFEST
 Makefile.PL
-lib/LEOCHARRE/DEBUG.pm
-t/0.t
-t/1.t
-t/2.t
-t/3.t
-t/inherit_debug.pm
+lib/LEOCHARRE/Debug.pm
+t/00.t
+t/01_warnf.t
+t/03-scope.t
 META.yml                                 Module meta-data (added by MakeMaker)

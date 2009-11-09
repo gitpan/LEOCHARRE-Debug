@@ -1,16 +1,25 @@
 use ExtUtils::MakeMaker;
+
 WriteMakefile(
-	NAME => 'LEOCHARRE::DEBUG',
-	VERSION_FROM => 'lib/LEOCHARRE/DEBUG.pm',
-   ABSTRACT_FROM => 'lib/LEOCHARRE/DEBUG.pm',
-   LICENSE => 'perl',
+
+   NAME => 'LEOCHARRE::Debug',   
+   VERSION_FROM   => 'lib/LEOCHARRE/Debug.pm',   
+   ABSTRACT_FROM  => 'lib/LEOCHARRE/Debug.pm',      
    
-   # gen /usr/bin/pmused by Thu Sep 10 16:31:26 EDT 2009 
+   LICENSE        => 'perl',   
+   
+   AUTHOR         => 'Leo Charre leocharre at cpan dot org',   
+   
+   EXE_FILES => [],
+
+   
+   # gen /usr/bin/pmused by Mon Nov  9 12:08:37 EST 2009 
    PREREQ_PM => {
-      'Data::Dumper'                      => '2',
-      'Term::ANSIColor'                   => '1.10',
+      'Carp'                              => '1',
+      'Cwd'                               => '3',
       'Test::Simple'                      => '0',
    },
-   AUTHOR => 'Leo Charre leocharre at cpan dot org',
 
 );
+
+
